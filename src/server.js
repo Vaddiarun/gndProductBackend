@@ -182,7 +182,9 @@ import taskRoutes from "./routes/taskRoutes.js";
 
 validateEnv();
 
+
 const app = express();
+app.use(cors());
 
 // ────────────── Security & utils ──────────────
 app.use(helmet());
