@@ -302,6 +302,8 @@ validateEnv();
 // ────────────── Express App Setup ──────────────
 const app = express();
 
+
+
 // ────────────── Security ──────────────
 app.use(helmet());
 app.use(express.json({ limit: "1mb" }));
@@ -312,22 +314,27 @@ const allowedOrigins = [
   "http://localhost:3000", // local dev
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like Postman, mobile apps)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+app.use(cors({
+    origin: true,
     credentials: true,
-  })
-);
+  }));
+
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       // Allow requests with no origin (like Postman, mobile apps)
+//       if (!origin) return callback(null, true);
+
+//       if (allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     credentials: true,
+//   })
+// );
 
 // ────────────── Logging ──────────────
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
