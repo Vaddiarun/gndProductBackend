@@ -843,7 +843,7 @@ export async function createTask(req, res) {
     const task = await Task.create({
       product: productId,
       owner: owner || req.user.id,           // ✅ allow frontend-sent owner
-      ownerName: ownerName || rest.ownerName || req.user.name,
+    ownerName: ownerName || rest.ownerName || req.user.name, // prefer frontend name
       category,
       ...rest,
       createdDate: rest.createdDate ? new Date(rest.createdDate) : undefined,
