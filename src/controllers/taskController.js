@@ -812,7 +812,7 @@ export async function createTask(req, res) {
     const task = await Task.create({
       product: productId,
       owner:req.user.id,
-      ownerName: ownerName || req.user.name,
+      ownerName: rest.ownerName || req.user.name, ,
       category,
       ...rest,
       createdDate: rest.createdDate ? new Date(rest.createdDate) : undefined,
