@@ -51,6 +51,7 @@ const taskSchema = new mongoose.Schema(
     },
     createdDate: { type: Date, default: Date.now },
     startDate: { type: Date },
+    assignee: { type: String, required: true },
     expectedEndDate: { type: Date },
     endDate: { type: Date }, // ✅ actual completion date
     remarks: { type: String },

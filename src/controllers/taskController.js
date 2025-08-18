@@ -788,7 +788,8 @@ const taskSchema = z.object({
   endDate: z.string().datetime().optional(),
   remarks: z.string().optional(),
   owner: z.string().optional(),      // ✅ send ObjectId of owner
-  ownerName: z.string().optional(),  // ✅ optional snapshot of owner name
+  ownerName: z.string().optional(),
+    // ✅ optional snapshot of owner name
 });
 
 const partialTaskSchema = taskSchema.partial();
@@ -828,6 +829,7 @@ const partialTaskSchema = taskSchema.partial();
 // }
 export async function createTask(req, res) {
   try {
+    const {assignee} = req.body
     const parsed = taskSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({
@@ -836,6 +838,7 @@ export async function createTask(req, res) {
     }
 
     const { product: productId, category, owner, ownerName, ...rest } = parsed.data;
+  
 
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: "Product not found" });
@@ -850,6 +853,7 @@ export async function createTask(req, res) {
       startDate: rest.startDate ? new Date(rest.startDate) : undefined,
       expectedEndDate: rest.expectedEndDate ? new Date(rest.expectedEndDate) : undefined,
       endDate: rest.endDate ? new Date(rest.endDate) : undefined,
+      assignee: assignee  // auto-assign current user as assignee
     });
 
     res.status(201).json(task);
