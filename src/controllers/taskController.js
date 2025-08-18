@@ -811,7 +811,7 @@ export async function createTask(req, res) {
     // If owner is not provided, fallback to logged-in user
     const task = await Task.create({
       product: productId,
-      owner: owner || req.user.id,
+      owner:req.user.id,
       ownerName: ownerName || req.user.name,
       category,
       ...rest,
