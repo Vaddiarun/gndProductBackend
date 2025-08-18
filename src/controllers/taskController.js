@@ -272,6 +272,136 @@
 //     res.status(500).json({ message: "Error fetching tasks", error: err.message });
 //   }
 // }
+// import { z } from "zod";
+// import Task from "../models/Task.js";
+// import Product from "../models/Product.js";
+
+// const taskSchema = z.object({
+//   product: z.string().min(1),
+//   title: z.string().min(2),
+//   status: z.enum(["IN_PROGRESS", "TODO"]),
+//   category: z.enum([
+//     "Hardware",
+//     "Firmware",
+//     "Testing",
+//     "Mechanical",
+//     "Certifications",
+//     "Production"
+//   ]),
+//   createdDate: z.string().datetime().optional(),
+//   startDate: z.string().datetime().optional(),
+//   expectedEndDate: z.string().datetime().optional(),
+//   remarks: z.string().optional()
+// });
+
+// const partialTaskSchema = taskSchema.partial();
+
+// // ---------------- CREATE TASK ----------------
+// export async function createTask(req, res) {
+//   try {
+//     const parsed = taskSchema.safeParse(req.body);
+//     if (!parsed.success) {
+//       return res.status(400).json({
+//         message: parsed.error.errors.map(e => e.message).join(", ")
+//       });
+//     }
+
+//     const { product: productId, category, ...rest } = parsed.data;
+
+//     const product = await Product.findById(productId);
+//     if (!product) return res.status(404).json({ message: "Product not found" });
+
+//     const task = await Task.create({
+//       product: productId,
+//       owner: req.user.id, // auto-assign owner
+//       category,           // explicitly set category
+//       ...rest,
+//       createdDate: rest.createdDate ? new Date(rest.createdDate) : undefined,
+//       startDate: rest.startDate ? new Date(rest.startDate) : undefined,
+//       expectedEndDate: rest.expectedEndDate ? new Date(rest.expectedEndDate) : undefined
+//     });
+
+//     res.status(201).json(task);
+//   } catch (err) {
+//     res.status(500).json({ message: "Error creating task", error: err.message });
+//   }
+// }
+
+// // ---------------- UPDATE TASK ----------------
+// export async function updateTask(req, res) {
+//   try {
+//     const parsed = partialTaskSchema.safeParse(req.body);
+//     if (!parsed.success) {
+//       return res.status(400).json({
+//         message: parsed.error.errors.map(e => e.message).join(", ")
+//       });
+//     }
+
+//     const toSet = { ...parsed.data };
+//     ["createdDate", "startDate", "expectedEndDate"].forEach((k) => {
+//       if (toSet[k]) toSet[k] = new Date(toSet[k]);
+//     });
+
+//     // Prevent changing product
+//     if (toSet.product) delete toSet.product;
+
+//     const task = await Task.findByIdAndUpdate(
+//       req.params.id,
+//       { $set: toSet },
+//       { new: true }
+//     );
+
+//     if (!task) return res.status(404).json({ message: "Task not found" });
+//     res.json(task);
+//   } catch (err) {
+//     res.status(500).json({ message: "Error updating task", error: err.message });
+//   }
+// }
+
+// // ---------------- DELETE TASK ----------------
+// export async function deleteTask(req, res) {
+//   try {
+//     const task = await Task.findById(req.params.id);
+//     if (!task) return res.status(404).json({ message: "Task not found" });
+
+//     await task.deleteOne();
+//     res.json({ message: "Deleted" });
+//   } catch (err) {
+//     res.status(500).json({ message: "Error deleting task", error: err.message });
+//   }
+// }
+
+// // ---------------- GET SINGLE TASK ----------------
+// export async function getTask(req, res) {
+//   try {
+//     const task = await Task.findById(req.params.id);
+//     if (!task) return res.status(404).json({ message: "Task not found" });
+
+//     res.json(task);
+//   } catch (err) {
+//     res.status(500).json({ message: "Error fetching task", error: err.message });
+//   }
+// }
+
+// // ---------------- LIST TASKS ----------------
+// export async function listTasks(req, res) {
+//   try {
+//     const { product, status, category } = req.query;
+
+//     // Require product & category for proper filtering
+//     if (!product || !category) {
+//       return res.status(400).json({ message: "Product and category are required" });
+//     }
+
+//     const query = { product, category };
+//     if (status) query.status = status;
+
+//     const tasks = await Task.find(query).sort({ createdAt: -1 });
+//     res.json(tasks);
+//   } catch (err) {
+//     res.status(500).json({ message: "Error fetching tasks", error: err.message });
+//   }
+// }
 import { z } from "zod";
 import Task from "../models/Task.js";
 import Product from "../models/Product.js";
@@ -279,7 +409,7 @@ import Product from "../models/Product.js";
 const taskSchema = z.object({
   product: z.string().min(1),
   title: z.string().min(2),
-  status: z.enum(["IN_PROGRESS", "TODO"]),
+  status: z.enum(["IN_PROGRESS", "TODO", "DONE"]), // added DONE
   category: z.enum([
     "Hardware",
     "Firmware",
@@ -291,6 +421,7 @@ const taskSchema = z.object({
   createdDate: z.string().datetime().optional(),
   startDate: z.string().datetime().optional(),
   expectedEndDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(), // ✅ NEW
   remarks: z.string().optional()
 });
 
@@ -314,11 +445,12 @@ export async function createTask(req, res) {
     const task = await Task.create({
       product: productId,
       owner: req.user.id, // auto-assign owner
-      category,           // explicitly set category
+      category,
       ...rest,
       createdDate: rest.createdDate ? new Date(rest.createdDate) : undefined,
       startDate: rest.startDate ? new Date(rest.startDate) : undefined,
-      expectedEndDate: rest.expectedEndDate ? new Date(rest.expectedEndDate) : undefined
+      expectedEndDate: rest.expectedEndDate ? new Date(rest.expectedEndDate) : undefined,
+      endDate: rest.endDate ? new Date(rest.endDate) : undefined // ✅ NEW
     });
 
     res.status(201).json(task);
@@ -338,7 +470,7 @@ export async function updateTask(req, res) {
     }
 
     const toSet = { ...parsed.data };
-    ["createdDate", "startDate", "expectedEndDate"].forEach((k) => {
+    ["createdDate", "startDate", "expectedEndDate", "endDate"].forEach((k) => {
       if (toSet[k]) toSet[k] = new Date(toSet[k]);
     });
 
@@ -355,50 +487,5 @@ export async function updateTask(req, res) {
     res.json(task);
   } catch (err) {
     res.status(500).json({ message: "Error updating task", error: err.message });
-  }
-}
-
-// ---------------- DELETE TASK ----------------
-export async function deleteTask(req, res) {
-  try {
-    const task = await Task.findById(req.params.id);
-    if (!task) return res.status(404).json({ message: "Task not found" });
-
-    await task.deleteOne();
-    res.json({ message: "Deleted" });
-  } catch (err) {
-    res.status(500).json({ message: "Error deleting task", error: err.message });
-  }
-}
-
-// ---------------- GET SINGLE TASK ----------------
-export async function getTask(req, res) {
-  try {
-    const task = await Task.findById(req.params.id);
-    if (!task) return res.status(404).json({ message: "Task not found" });
-
-    res.json(task);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching task", error: err.message });
-  }
-}
-
-// ---------------- LIST TASKS ----------------
-export async function listTasks(req, res) {
-  try {
-    const { product, status, category } = req.query;
-
-    // Require product & category for proper filtering
-    if (!product || !category) {
-      return res.status(400).json({ message: "Product and category are required" });
-    }
-
-    const query = { product, category };
-    if (status) query.status = status;
-
-    const tasks = await Task.find(query).sort({ createdAt: -1 });
-    res.json(tasks);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching tasks", error: err.message });
   }
 }
