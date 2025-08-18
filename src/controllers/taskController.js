@@ -794,6 +794,38 @@ const taskSchema = z.object({
 const partialTaskSchema = taskSchema.partial();
 
 // ---------------- CREATE TASK ----------------
+// export async function createTask(req, res) {
+//   try {
+//     const parsed = taskSchema.safeParse(req.body);
+//     if (!parsed.success) {
+//       return res.status(400).json({
+//         message: parsed.error.errors.map(e => e.message).join(", ")
+//       });
+//     }
+
+//     const { product: productId, category, owner, ownerName, ...rest } = parsed.data;
+
+//     const product = await Product.findById(productId);
+//     if (!product) return res.status(404).json({ message: "Product not found" });
+
+//     // If owner is not provided, fallback to logged-in user
+//     const task = await Task.create({
+//       product: productId,
+//      owner: owner || req.user.id, 
+//       ownerName: rest.ownerName || req.user.name,
+//       category,
+//       ...rest,
+//       createdDate: rest.createdDate ? new Date(rest.createdDate) : undefined,
+//       startDate: rest.startDate ? new Date(rest.startDate) : undefined,
+//       expectedEndDate: rest.expectedEndDate ? new Date(rest.expectedEndDate) : undefined,
+//       endDate: rest.endDate ? new Date(rest.endDate) : undefined,
+//     });
+
+//     res.status(201).json(task);
+//   } catch (err) {
+//     res.status(500).json({ message: "Error creating task", error: err.message });
+//   }
+// }
 export async function createTask(req, res) {
   try {
     const parsed = taskSchema.safeParse(req.body);
@@ -808,11 +840,10 @@ export async function createTask(req, res) {
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    // If owner is not provided, fallback to logged-in user
     const task = await Task.create({
       product: productId,
-      owner:req.user.id,
-      ownerName: rest.ownerName || req.user.name,
+      owner: owner || req.user.id,           // ✅ allow frontend-sent owner
+      ownerName: ownerName || rest.ownerName || req.user.name,
       category,
       ...rest,
       createdDate: rest.createdDate ? new Date(rest.createdDate) : undefined,
