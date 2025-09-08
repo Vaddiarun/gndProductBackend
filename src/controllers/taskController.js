@@ -1,4 +1,4 @@
-import Task from "../models/task.js";
+import Task from "../models/Task.js";
 import Product from "../models/product.js";
 import { taskZodSchema, partialTaskSchema } from "../utils/taskValidation.js";
  
