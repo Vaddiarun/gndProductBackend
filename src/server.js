@@ -421,11 +421,16 @@ validateEnv();
  
 // ────────────── Express App Setup ──────────────
 const app = express();
- 
+
+  const allowedOrigins = [
+  "https://gndengineeringdashboard.onrender.com", // deployed frontend
+  "http://localhost:3000", // local dev
+  "https://gndengineeringdashboard.thinxview.io"
+];
 // ────────────── CORS FIRST ──────────────
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend dev server
+    origin: allowedOrigins,
     credentials: true,
   })
 );
