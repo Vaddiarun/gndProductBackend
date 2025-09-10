@@ -430,7 +430,7 @@ const app = express();
 // ────────────── CORS FIRST ──────────────
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin:"*",
     credentials: true,
   })
 );
